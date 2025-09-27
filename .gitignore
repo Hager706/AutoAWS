@@ -1,0 +1,26 @@
+# Create .gitignore
+cat > .gitignore << EOF
+# Terraform files
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+terraform.tfvars
+*.tfplan
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Python files
+__pycache__/
+*.pyc
+*.pyo
+EOF
