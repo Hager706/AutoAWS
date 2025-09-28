@@ -12,10 +12,10 @@ def load_yaml_config(config_file):
         with open(config_file, 'r') as file:
             return yaml.safe_load(file)
     except FileNotFoundError:
-        print(f"❌ Error: Configuration file '{config_file}' not found")
+        print(f" Error: Configuration file '{config_file}' not found")
         sys.exit(1)
     except yaml.YAMLError as e:
-        print(f"❌ Error parsing YAML file: {e}")
+        print(f" Error parsing YAML file: {e}")
         sys.exit(1)
 
 def create_tfvars(config):
@@ -55,11 +55,11 @@ def create_tfvars(config):
     with open('terraform.tfvars', 'w') as f:
         f.write('\n'.join(tfvars_content))
     
-    print("✅ Created terraform.tfvars")
+    print(" Created terraform.tfvars")
 
 def run_terraform_command(command):
     """Run terraform command and handle output"""
-    print(f"🔧 Running: terraform {' '.join(command)}")
+    print(f" Running: terraform {' '.join(command)}")
     try:
         result = subprocess.run(['terraform'] + command, 
                               capture_output=True, text=True, check=True)
@@ -68,7 +68,7 @@ def run_terraform_command(command):
             print(result.stderr)
         return True
     except subprocess.CalledProcessError as e:
-        print(f"❌ Error running terraform {' '.join(command)}:")
+        print(f" Error running terraform {' '.join(command)}:")
         print(e.stderr)
         return False
 
@@ -78,8 +78,8 @@ def main():
         sys.exit(1)
     
     config_file = sys.argv[1]
-    print(f"🚀 Starting AWS VPC deployment...")
-    print(f"📄 Loading configuration from: {config_file}")
+    print(f" Starting AWS VPC deployment...")
+    print(f" Loading configuration from: {config_file}")
     
     # Load configuration
     config = load_yaml_config(config_file)
@@ -93,28 +93,28 @@ def main():
     create_tfvars(config)
     
     # Initialize Terraform
-    print("\n🔧 Initializing Terraform...")
+    print("\n Initializing Terraform...")
     if not run_terraform_command(['init']):
         sys.exit(1)
     
     # Plan
-    print("\n📋 Creating execution plan...")
+    print("\n Creating execution plan...")
     if not run_terraform_command(['plan']):
         sys.exit(1)
     
     # Ask for confirmation
-    response = input("\n❓ Do you want to apply these changes? (yes/no): ")
+    response = input("\n Do you want to apply these changes? (yes/no): ")
     if response.lower() != 'yes':
-        print("❌ Deployment cancelled")
+        print(" Deployment cancelled")
         sys.exit(0)
     
     # Apply
-    print("\n🚀 Applying changes...")
+    print("\n Applying changes...")
     if run_terraform_command(['apply', '-auto-approve']):
-        print("\n✅ VPC Infrastructure deployed successfully!")
+        print("\n VPC Infrastructure deployed successfully!")
         print("🎉 Your AWS VPC and subnets are ready!")
     else:
-        print("\n❌ Deployment failed!")
+        print("\n Deployment failed!")
         sys.exit(1)
 
 if __name__ == "__main__":

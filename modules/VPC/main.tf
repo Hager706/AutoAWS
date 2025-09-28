@@ -8,7 +8,6 @@ resource "aws_vpc" "main" {
   })
 }
 
-# Internet Gateway for public subnets
 resource "aws_internet_gateway" "main" {
   count  = length(var.public_subnets) > 0 ? 1 : 0
   vpc_id = aws_vpc.main.id
@@ -18,7 +17,6 @@ resource "aws_internet_gateway" "main" {
   })
 }
 
-# Public Route Table
 resource "aws_route_table" "public" {
   count  = length(var.public_subnets) > 0 ? 1 : 0
   vpc_id = aws_vpc.main.id
@@ -33,7 +31,6 @@ resource "aws_route_table" "public" {
   })
 }
 
-# Private Route Table
 resource "aws_route_table" "private" {
   count  = length(var.private_subnets) > 0 ? 1 : 0
   vpc_id = aws_vpc.main.id
@@ -43,7 +40,6 @@ resource "aws_route_table" "private" {
   })
 }
 
-# PUBLIC SUBNETS
 resource "aws_subnet" "public" {
   for_each = {
     for subnet in var.public_subnets : subnet.name => subnet
@@ -60,14 +56,12 @@ resource "aws_subnet" "public" {
   })
 }
 
-# Associate public subnets with public route table
 resource "aws_route_table_association" "public" {
   for_each       = aws_subnet.public
   subnet_id      = each.value.id
   route_table_id = aws_route_table.public[0].id
 }
 
-# PRIVATE SUBNETS
 resource "aws_subnet" "private" {
   for_each = {
     for subnet in var.private_subnets : subnet.name => subnet
@@ -83,7 +77,6 @@ resource "aws_subnet" "private" {
   })
 }
 
-# Associate private subnets with private route table
 resource "aws_route_table_association" "private" {
   for_each       = aws_subnet.private
   subnet_id      = each.value.id
