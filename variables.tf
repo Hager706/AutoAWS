@@ -65,3 +65,10 @@ variable "enable_vpc" {
   type        = bool
   default     = false
 }
+
+
+
+
+variable "services" {
+  type = any
+}

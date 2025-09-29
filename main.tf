@@ -14,3 +14,29 @@ module "vpc" {
   region               = var.aws_region
 
 }
+
+
+module "security_groups" {
+  source          = "./modules/Security_groups"
+  project_name    = var.project_name
+  environment     = var.environment
+  vpc_id          = var.enable_vpc ? module.vpc[0].vpc_id : null
+  security_groups = var.services.security_groups
+  tags            = var.common_tags
+}
+
+
+module "alb" {
+  source            = "./modules/alb"
+  name              = var.project_name
+  vpc_id            = module.vpc[0].vpc_id
+  public_subnet_ids = module.vpc[0].public_subnet_ids
+  alb_sg_id         = module.security_groups.security_group_ids["alb"]
+}
+
+
+# --- IAM ---
+module "iam" {
+  source = "./modules/iam"
+  name   = var.project_name
+}
