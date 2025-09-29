@@ -40,3 +40,20 @@ module "iam" {
   source = "./modules/iam"
   name   = var.project_name
 }
+
+
+# Autoscaling (launch template + ASG)
+module "autoscaling" {
+  source                = "./modules/autoscaling"
+  name                  = var.project_name
+  ami                   = try(var.services.autoscaling.ami, "")
+  instance_type         = try(var.services.autoscaling.instance_type, "t3.micro")
+  app_sg_id             = module.security_groups.security_group_ids["app"]
+  subnet_ids            = module.vpc[0].private_subnet_ids
+  min_size              = try(var.services.autoscaling.min_size, 1)
+  max_size              = try(var.services.autoscaling.max_size, 1)
+  user_data             = try(var.services.autoscaling.user_data, "")
+  instance_profile_name = module.iam.instance_profile_name
+  target_group_arn      = module.alb.target_group_arn
+}
+
