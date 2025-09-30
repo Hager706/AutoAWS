@@ -34,4 +34,3 @@ variable "target_group_arn" {
 
 
 
-# feat(autoscaling): add AutoScaling group with Nginx user_data
