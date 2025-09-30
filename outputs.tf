@@ -20,3 +20,7 @@ output "security_groups" {
 output "alb_dns" {
   value = module.alb.dns_name
 }
+
+output "s3_bucket" {
+  value = module.s3.bucket_name
+}

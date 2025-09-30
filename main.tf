@@ -63,3 +63,13 @@ module "monitoring" {
   name           = var.project_name
   retention_days = try(var.services.monitoring.retention_days, 7)
 }
+
+
+# S3
+module "s3" {
+  source      = "./modules/s3"
+  bucket_name = var.project_name
+  env         = var.environment
+  versioning  = try(var.services.s3.versioning, false)
+  tags        = var.common_tags
+}

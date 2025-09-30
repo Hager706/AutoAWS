@@ -83,3 +83,6 @@ services:
 
   rds:
     create: false
+
+  s3:
+    versioning: true
