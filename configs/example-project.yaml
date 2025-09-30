@@ -80,3 +80,6 @@ services:
 
   alb:
     create: true
+
+  rds:
+    create: false

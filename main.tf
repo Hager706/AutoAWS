@@ -57,3 +57,9 @@ module "autoscaling" {
   target_group_arn      = module.alb.target_group_arn
 }
 
+# Monitoring (CloudWatch log group)
+module "monitoring" {
+  source         = "./modules/monitoring"
+  name           = var.project_name
+  retention_days = try(var.services.monitoring.retention_days, 7)
+}
