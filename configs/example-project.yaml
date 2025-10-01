@@ -89,3 +89,6 @@ services:
 
   monitoring:
     retention_days: 14
+
+  route53:
+    create: false

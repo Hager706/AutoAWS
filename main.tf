@@ -77,7 +77,7 @@ module "s3" {
 
 # RDS (optional)
 module "rds" {
-  source            = "./modules/rds"
+  source            = "./modules/RDS"
   create            = try(var.services.rds.create, false)
   name              = var.project_name
   engine            = try(var.services.rds.engine, "mysql")
@@ -89,4 +89,15 @@ module "rds" {
   password          = try(var.services.rds.password, null)
   subnet_ids        = module.vpc.private_subnet_ids
   db_sg_id          = module.security_groups.security_group_ids["app"]
+}
+
+
+# Route53 (optional)
+module "route53" {
+  source      = "./modules/route53"
+  create      = try(var.services.route53.create, false)
+  zone_id     = try(var.services.route53.zone_id, "")
+  record_name = try(var.services.route53.record_name, "")
+  alb_dns     = module.alb.dns_name
+  alb_zone_id = module.alb.dns_zone_id
 }
