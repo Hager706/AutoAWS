@@ -73,3 +73,20 @@ module "s3" {
   versioning  = try(var.services.s3.versioning, false)
   tags        = var.common_tags
 }
+
+
+# RDS (optional)
+module "rds" {
+  source            = "./modules/rds"
+  create            = try(var.services.rds.create, false)
+  name              = var.project_name
+  engine            = try(var.services.rds.engine, "mysql")
+  engine_version    = try(var.services.rds.engine_version, null)
+  instance_class    = try(var.services.rds.instance_class, "db.t3.micro")
+  allocated_storage = try(var.services.rds.allocated_storage, 20)
+  db_name           = try(var.services.rds.db_name, null)
+  username          = try(var.services.rds.username, null)
+  password          = try(var.services.rds.password, null)
+  subnet_ids        = module.vpc.private_subnet_ids
+  db_sg_id          = module.security_groups.security_group_ids["app"]
+}
