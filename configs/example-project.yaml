@@ -86,3 +86,6 @@ services:
 
   s3:
     versioning: true
+
+  monitoring:
+    retention_days: 14
