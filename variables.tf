@@ -65,3 +65,32 @@ variable "enable_vpc" {
   type        = bool
   default     = false
 }
+
+variable "enable_security_groups" {
+  description = "Whether to create Security Group resources"
+  type        = bool
+  default     = false
+}
+
+variable "security_groups" {
+  description = "List of security group configurations"
+  type = list(object({
+    name        = string
+    description = string
+    ingress_rules = list(object({
+      from_port   = number
+      to_port     = number
+      protocol    = string
+      cidr_blocks = list(string)
+      description = optional(string, "")
+    }))
+    egress_rules = optional(list(object({
+      from_port   = number
+      to_port     = number
+      protocol    = string
+      cidr_blocks = list(string)
+      description = optional(string, "")
+    })), [])
+  }))
+  default = []
+}
