@@ -59,7 +59,7 @@ module "autoscaling" {
 
 # Monitoring (CloudWatch log group)
 module "monitoring" {
-  source         = "./modules/monitoring"
+  source         = "./modules/CloudWatch"
   name           = var.project_name
   retention_days = try(var.services.monitoring.retention_days, 7)
 }
@@ -67,7 +67,7 @@ module "monitoring" {
 
 # S3
 module "s3" {
-  source      = "./modules/s3"
+  source      = "./modules/S3"
   bucket_name = var.project_name
   env         = var.environment
   versioning  = try(var.services.s3.versioning, false)
