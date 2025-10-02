@@ -92,7 +92,7 @@ module "rds" {
 }
 
 
-# Route53 (optional)
+# Route53 
 module "route53" {
   source      = "./modules/route53"
   create      = try(var.services.route53.create, false)
@@ -101,3 +101,13 @@ module "route53" {
   alb_dns     = module.alb.dns_name
   alb_zone_id = module.alb.dns_zone_id
 }
+
+
+# Secrets Manager
+module "secrets" {
+  source      = "./modules/secrets"
+  create      = try(var.services.secrets.create, false)
+  name        = var.project_name
+  secret_data = try(var.services.secrets.secret_data, {})
+}
+
