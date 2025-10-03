@@ -65,3 +65,83 @@ def create_tfvars(config):
     
     print("Created terraform.tfvars")
     
+def run_terraform_commands(command):
+    """Run terraform command and handle output"""
+    print(f"Running: terraform {' '.join(command)}")
+    try:
+        result = subprocess.run(['terraform'] + command, 
+                                capture_output=True, text=True, check=True)
+        print(result.stdout)
+        if result.stderr:
+            print(result.stderr)
+        return True
+    except subprocess.CalledProcessError as e:
+        print(f"Error running terraform {' '.join(command)}:")
+        print(e.stderr)
+        return False
+    
+def main():
+    if len(sys.argv) < 3:
+        print("Usage: infra.py <config.yaml> <deploy|destroy>")
+        sys.exit(1)
+    config_file = sys.argv[1]
+    action = sys.argv[2].lower()
+
+    print(f"Starting AWS infrastructure ({action})...")
+    print(f"Loading configuration from: {config_file}")
+
+    # Load configuration
+    config = load_config(config_file)
+
+    # Change to project root directory
+    script_dir = Path(__file__).parent
+    project_root = script_dir.parent
+    os.chdir(project_root)
+
+    # Create terraform.tfvars
+    create_tfvars(config)
+
+
+    print("Initializing Terraform...")
+    if not run_terraform_commands(['init']):
+        sys.exit(1)
+    
+
+    # Plan
+    if action == 'deploy':
+        print("Creating execution plan...")
+        if not run_terraform_commands(['plan']):
+            sys.exit(1)
+    elif action == 'destroy':
+        print("Creating destroy plan...")
+        if not run_terraform_commands(['plan', '-destroy']):
+            sys.exit(1)
+
+
+    # Ask for confirmation 
+    response = input(f"Do you want to {action} these changes? (yes/no):")
+    if response.lower() != 'yes':
+        print("Operation cancelled")
+        sys.exit(0)
+    
+    # Apply or Destroy
+    if action == 'deploy':
+        print("Applying changes...")
+        if run_terraform_commands(['apply', '-auto-approve']):
+            print("Infrastructure deployed successfully.")
+        else:
+            print("Deploying failed.")
+            sys.exit(1)
+    elif action == 'destroy':
+        print("Destroying infrastructure...")
+        if run_terraform_commands(['destroy', '-auto-approve']):
+            print("Infrastructure destroyed successfully.")
+        else:
+            print("Destroying failed.")
+            sys.exit(1)
+    else:
+        print("Invalid action. Use 'deploy' or 'destroy'.")
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main()
