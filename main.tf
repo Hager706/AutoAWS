@@ -87,7 +87,7 @@ module "rds" {
   db_name           = try(var.services.rds.db_name, null)
   username          = try(var.services.rds.username, null)
   password          = try(var.services.rds.password, null)
-  subnet_ids        = module.vpc.private_subnet_ids
+  subnet_ids        = module.vpc[0].private_subnet_ids
   db_sg_id          = module.security_groups.security_group_ids["app"]
 }
 
