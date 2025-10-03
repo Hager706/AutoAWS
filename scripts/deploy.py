@@ -50,7 +50,11 @@ def create_tfvars(config):
     if 'private_subnets' in config:
         private_subnets = json.dumps(config['private_subnets'], indent=2)
         tfvars_content.append(f'private_subnets = {private_subnets}')
-    
+
+    # Services (nested block like SG, ALB, etc.)
+    if "services" in config:
+        services_str = json.dumps(config["services"], indent=2)
+        tfvars_content.append(f'services = {services_str}')
     # Write to file
     with open('terraform.tfvars', 'w') as f:
         f.write('\n'.join(tfvars_content))

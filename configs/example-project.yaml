@@ -43,3 +43,46 @@ private_subnets:
   - name: "private-db-1"
     cidr_block: "10.0.20.0/24"
     availability_zone: "us-east-1a"
+
+services:
+  security_groups:
+    - name: alb
+      description: "ALB security group"
+      ingress_rules:
+        - from_port: 80
+          to_port: 80
+          protocol: tcp
+          cidr_blocks: ["0.0.0.0/0"]
+          description: "Allow HTTP from anywhere"
+      egress_rules: []
+      
+    - name: app
+      description: "App server SG"
+      ingress_rules:
+        - from_port: 8080
+          to_port: 8080
+          protocol: tcp
+          cidr_blocks: ["10.0.0.0/16"] 
+
+  autoscaling:
+    ami: "ami-0c94855ba95c71c99"
+    instance_type: "t3.micro"
+    min_size: 1
+    max_size: 2
+    user_data: |
+      #!/bin/bash
+      yum update -y
+      amazon-linux-extras install -y nginx1
+      echo "<h1>Hello from Terraform on AWS \u1F680</h1>" > /usr/share/nginx/html/index.html
+      systemctl enable nginx
+      systemctl start nginx
+
+
+  alb:
+    create: true
+
+  rds:
+    create: false
+
+  s3:
+    versioning: true
