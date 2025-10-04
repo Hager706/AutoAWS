@@ -59,7 +59,7 @@ module "autoscaling" {
 
 # Monitoring (CloudWatch log group)
 module "monitoring" {
-  source         = "./modules/monitoring"
+  source         = "./modules/CloudWatch"
   name           = var.project_name
   retention_days = try(var.services.monitoring.retention_days, 7)
 }
@@ -67,9 +67,45 @@ module "monitoring" {
 
 # S3
 module "s3" {
-  source      = "./modules/s3"
+  source      = "./modules/S3"
   bucket_name = var.project_name
   env         = var.environment
   versioning  = try(var.services.s3.versioning, false)
   tags        = var.common_tags
+}
+
+# RDS
+module "rds" {
+  source            = "./modules/RDS"
+  create            = try(var.services.rds.create, false)
+  name              = var.project_name
+  engine            = try(var.services.rds.engine, "mysql")
+  engine_version    = try(var.services.rds.engine_version, null)
+  instance_class    = try(var.services.rds.instance_class, "db.t3.micro")
+  allocated_storage = try(var.services.rds.allocated_storage, 20)
+  db_name           = try(var.services.rds.db_name, null)
+  username          = try(var.services.rds.username, null)
+  password          = try(var.services.rds.password, null)
+  subnet_ids        = module.vpc[0].private_subnet_ids
+  db_sg_id          = module.security_groups.security_group_ids["app"]
+}
+
+
+# Route53 
+module "route53" {
+  source      = "./modules/route53"
+  create      = try(var.services.route53.create, false)
+  zone_id     = try(var.services.route53.zone_id, "")
+  record_name = try(var.services.route53.record_name, "")
+  alb_dns     = module.alb.dns_name
+  alb_zone_id = module.alb.dns_zone_id
+}
+
+
+# Secrets Manager
+module "secrets" {
+  source      = "./modules/secrets"
+  create      = try(var.services.secrets.create, false)
+  name        = var.project_name
+  secret_data = try(var.services.secrets.secret_data, {})
 }
