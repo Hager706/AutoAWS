@@ -9,8 +9,8 @@ resource "aws_vpc" "main" {
 }
 
 variable "region" {
-   description = "AWS region"
-   type        = string
+  description = "AWS region"
+  type        = string
 }
 
 resource "aws_internet_gateway" "main" {
