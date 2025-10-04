@@ -17,7 +17,7 @@ on:
       config_file:
         description: "YAML config file"
         required: true
-        default: "config/example-project.yaml"
+        default: "configs/example-project.yaml"
       confirm_destroy:
         description: "Type Yes to confirm destroy destroy"
         required: false
@@ -46,19 +46,19 @@ jobs:
           
       - name: Run Infra Script
         run: |
-          if [[ "${{ github.event_name}} == "push"]]; then
+          if [[ "${{ github.event_name }}" == "push" ]]; then
             echo "Auto deploy on push"
             python3 scripts/infra.py ${{github.event.inputs.config_file}} deploy 
           else
             if [[ "${{ github.event.inputs.action }}" == "destroy" ]]; then
               if [[ "${{ github.event.inputs.confirm_destroy }}" != "Yes" ]]; then
-                echo "Destroy action not confirmed. Exiting."
+                echo "Destroy not confirmed. Exiting."
                 exit 1
               fi
             fi
-            python3 scripts/infra.py ${{github.event.inputs.config_file}} ${{github.event.inputs.action}}
+            python3 scripts/infra.py ${{ github.event.inputs.config_file }} ${{ github.event.inputs.action }}
           fi
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ${{secrets.AWS_DEFAULT_REGION }} 
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
