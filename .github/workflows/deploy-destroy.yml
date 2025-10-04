@@ -1,0 +1,64 @@
+name: Infra CI/CD
+
+on:
+  push:
+    paths:
+       - 'config/*.yaml'
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "Choose action: deploy or destroy"
+        required: true
+        default: "deploy"
+        type: choice
+        options:
+          - deploy
+          - destroy
+      config_file:
+        description: "YAML config file"
+        required: true
+        default: "config/example-project.yaml"
+      confirm_destroy:
+        description: "Type Yes to confirm destroy destroy"
+        required: false
+        default: "No"
+
+jobs:
+  infra:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+        
+      - name: Install dependencies
+        run: pip install pyyaml boto3
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.6
+          
+      - name: Run Infra Script
+        run: |
+          if [[ "${{ github.event_name}} == "push"]]; then
+            echo "Auto deploy on push"
+            python3 scripts/infra.py ${{github.event.inputs.config_file}} deploy 
+          else
+            if [[ "${{ github.event.inputs.action }}" == "destroy" ]]; then
+              if [[ "${{ github.event.inputs.confirm_destroy }}" != "Yes" ]]; then
+                echo "Destroy action not confirmed. Exiting."
+                exit 1
+              fi
+            fi
+            python3 scripts/infra.py ${{github.event.inputs.config_file}} ${{github.event.inputs.action}}
+          fi
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{secrets.AWS_DEFAULT_REGION }} 
