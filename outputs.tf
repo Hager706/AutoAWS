@@ -24,3 +24,8 @@ output "alb_dns" {
 output "s3_bucket" {
   value = module.s3.bucket_name
 }
+
+
+output "rds_endpoint" {
+  value = try(module.rds.endpoint, null)
+}

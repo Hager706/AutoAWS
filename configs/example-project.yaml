@@ -42,7 +42,7 @@ private_subnets:
     
   - name: "private-db-1"
     cidr_block: "10.0.20.0/24"
-    availability_zone: "us-east-1a"
+    availability_zone: "us-east-1b"
 
 services:
   security_groups:
@@ -86,3 +86,9 @@ services:
 
   s3:
     versioning: true
+
+  monitoring:
+    retention_days: 14
+
+  route53:
+    create: false
