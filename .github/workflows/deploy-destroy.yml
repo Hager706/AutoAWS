@@ -87,3 +87,40 @@ jobs:
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        
+      # Email success notification
+      - name: Email Success
+        if: success()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.EMAIL_USER }}
+          password: ${{ secrets.EMAIL_PASS }}
+          subject: "Infra ${{ github.event.inputs.action || 'deploy' }} SUCCESS"
+          to: "abdelrahmankhalid27@gmail.com"
+          from: "Terraform Bot <${{ secrets.EMAIL_USER }}>"
+          body: "Infra ${{ github.event.inputs.action || 'deploy' }} succeeded for config: ${{ github.event.inputs.config_file || 'configs/example.yaml' }}. Commit: ${{ github.sha }}"
+
+      # Email failure notification
+      - name: Email Failure
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.EMAIL_USER }}
+          password: ${{ secrets.EMAIL_PASS }}
+          subject: "Infra ${{ github.event.inputs.action || 'deploy' }} FAILED"
+          to: "abdelrahmankhalid27@gmail.com"
+          from: "Terraform Bot <${{ secrets.EMAIL_USER }}>"
+          body: "Infra ${{ github.event.inputs.action || 'deploy' }} failed for config: ${{ github.event.inputs.config_file || 'configs/example.yaml' }}. Commit: ${{ github.sha }}"
+
+
+
+
+
+
+
+
+            
