@@ -13,8 +13,7 @@
 7. [Deployment Process](#deployment-process)
 8. [GitHub Actions CI/CD](#github-actions-cicd)
 9. [Testing and Validation](#testing-and-validation)
-10. [Troubleshooting](#troubleshooting)
-11. [Best Practices](#best-practices)
+
 
 ---
 
@@ -23,7 +22,7 @@
 ### What is AutoAWS?
 AutoAWS is an infrastructure-as-code automation tool that simplifies AWS resource provisioning through YAML configuration files. Instead of writing complex Terraform code for each project, users can define their infrastructure requirements in a simple YAML file and let the automation handle the rest.
 
-![Alt text](1.png)
+![Alt text](2.png)
 
 ### Key Features
 - ✅ **YAML-Based Configuration** - Define infrastructure in simple, readable YAML files
