@@ -3,7 +3,7 @@ name: Infra CI/CD
 on:
   push:
     paths:
-       - 'config/*.yaml'
+       - 'configs/*.yaml'
   workflow_dispatch:
     inputs:
       action:
@@ -19,7 +19,7 @@ on:
         required: true
         default: "configs/example-project.yaml"
       confirm_destroy:
-        description: "Type Yes to confirm destroy destroy"
+        description: "Type Yes to confirm destroy"
         required: false
         default: "No"
 
@@ -48,7 +48,7 @@ jobs:
         run: |
           if [[ "${{ github.event_name }}" == "push" ]]; then
             echo "Auto deploy on push"
-            python3 scripts/infra.py ${{github.event.inputs.config_file}} deploy 
+            python3 scripts/infra.py ${{github.event.inputs.config_file}} ${{ github.event.inputs.action }} 
           else
             if [[ "${{ github.event.inputs.action }}" == "destroy" ]]; then
               if [[ "${{ github.event.inputs.confirm_destroy }}" != "Yes" ]]; then
