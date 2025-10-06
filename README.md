@@ -22,7 +22,7 @@
 ### What is AutoAWS?
 AutoAWS is an infrastructure-as-code automation tool that simplifies AWS resource provisioning through YAML configuration files. Instead of writing complex Terraform code for each project, users can define their infrastructure requirements in a simple YAML file and let the automation handle the rest.
 
-![Alt text](3.png)
+![Alt text](Architecture-image/3.png)
 
 ### Key Features
 - ✅ **YAML-Based Configuration** - Define infrastructure in simple, readable YAML files
@@ -65,7 +65,7 @@ AutoAWS solves these problems by:
 ```
 Developer → YAML Config → Python Script → Terraform → AWS Resources
                 ↓
-         GitHub Actions (Optional)
+         GitHub Actions
 ```
 
 ---
@@ -75,30 +75,32 @@ Developer → YAML Config → Python Script → Terraform → AWS Resources
 ### Directory Layout
 ```
 AutoAWS/
-├── configs/                    # YAML configuration files
-│   ├── test-vpc.yaml          # Full test configuration
-│   └── simple-test.yaml       # Simple test configuration
-├── modules/                    # Terraform modules
-│   ├── VPC/                   # VPC with subnets, NAT, IGW
-│   ├── Security_groups/       # Security group management
-│   ├── S3/                    # S3 bucket creation
-│   ├── RDS/                   # RDS database instances
-│   ├── CloudWatch/            # CloudWatch monitoring
-│   ├── ECR/                   # Elastic Container Registry
-│   ├── ECS/                   # Elastic Container Service
-│   ├── alb/                   # Application Load Balancer
-│   ├── autoscaling/           # Auto Scaling groups
-│   └── IAM/                   # IAM roles and policies
-├── scripts/                    # Automation scripts
-│   └── deploy.py              # Main deployment script
-├── .github/workflows/          # GitHub Actions workflows
-│   └── deploy-infrastructure.yml
-├── main.tf                     # Root Terraform configuration
-├── variables.tf                # Root variable definitions
-├── outputs.tf                  # Root output definitions
-├── providers.tf                # Provider configurations
-├── .gitignore                 # Git ignore rules
-└── README.md                   # Project documentation
+├── configs/                     # YAML configuration files
+│   └── example-project.yaml     # Simple test configuration
+├── modules/                     # Terraform modules
+│   ├── VPC/                     # VPC with subnets, NAT, IGW
+│   ├── Security_groups/         # Security group management
+│   ├── S3/                      # S3 bucket creation
+│   ├── RDS/                     # RDS database instances
+│   ├── CloudWatch/              # CloudWatch monitoring
+│   ├── ECR/                     # Elastic Container Registry
+│   ├── ECS/                     # Elastic Container Service
+│   ├── alb/                     # Application Load Balancer
+│   ├── autoscaling/             # Auto Scaling groups
+│   └── IAM/                     # IAM roles and policies
+├── scripts/                     # Automation scripts
+│   └── deploy.py                # Main deployment script
+│   └── destroy.py               # destroy script
+│   └── infra.py                 # Python script to deploy/destroy
+├── .github/workflows/           # GitHub Actions workflows
+│   └── deploy-destroy.yml
+├── backend.tf
+├── main.tf                      # Root Terraform configuration
+├── variables.tf                 # Root variable definitions
+├── outputs.tf                   # Root output definitions
+├── providers.tf                 # Provider configurations
+├── .gitignore                   # Git ignore rules
+└── README.md                    # Project documentation
 
 ```
 
