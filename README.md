@@ -76,10 +76,10 @@ AutoAWS/
 │   ├── S3/                      # S3 bucket creation
 │   ├── RDS/                     # RDS database instances
 │   ├── CloudWatch/              # CloudWatch monitoring
-│   ├── ECR/                     # Elastic Container Registry
-│   ├── ECS/                     # Elastic Container Service
 │   ├── alb/                     # Application Load Balancer
 │   ├── autoscaling/             # Auto Scaling groups
+│   ├── secrets/                 # Secrets
+│   ├── route53/                 # Route53
 │   └── IAM/                     # IAM roles and policies
 ├── scripts/                     # Automation scripts
 │   └── deploy.py                # Main deployment script
@@ -123,18 +123,26 @@ Creates a complete Virtual Private Cloud infrastructure including:
 #### Configuration Example
 Simple YAML configuration that creates VPC with subnets:
 ```yaml
-enable_vpc: true
 vpc_cidr: "10.0.0.0/16"
-enable_nat_gateway: true
-single_nat_gateway: false
+enable_dns_hostnames: true
+enable_dns_support: true
+
 public_subnets:
   - name: "public-web-1"
     cidr_block: "10.0.1.0/24"
     availability_zone: "us-east-1a"
+  - name: "public-web-2"
+    cidr_block: "10.0.2.0/24"
+    availability_zone: "us-east-1b"
+
 private_subnets:
   - name: "private-app-1"
     cidr_block: "10.0.10.0/24"
     availability_zone: "us-east-1a"
+    
+  - name: "private-db-1"
+    cidr_block: "10.0.20.0/24"
+    availability_zone: "us-east-1b"
 ```
 
 
@@ -159,25 +167,25 @@ Manages AWS Security Groups which act as virtual firewalls controlling inbound a
 #### Configuration Example
 Define web, application, and database tier security groups:
 ```yaml
-enable_security_groups: true
-security_groups:
-  - name: "web-sg"
-    description: "Security group for web servers"
-    ingress_rules:
-      - description: "HTTPS from internet"
-        from_port: 443
-        to_port: 443
-        protocol: "tcp"
-        cidr_blocks: ["0.0.0.0/0"]
-  
-  - name: "app-sg"
-    description: "Security group for application servers"
-    ingress_rules:
-      - description: "HTTP from web tier"
-        from_port: 8080
-        to_port: 8080
-        protocol: "tcp"
-        security_groups: ["web-sg"]
+services:
+  security_groups:
+    - name: alb
+      description: "ALB security group"
+      ingress_rules:
+        - from_port: 80
+          to_port: 80
+          protocol: tcp
+          cidr_blocks: ["0.0.0.0/0"]
+          description: "Allow HTTP from anywhere"
+      egress_rules: []
+      
+    - name: app
+      description: "App server SG"
+      ingress_rules:
+        - from_port: 8080
+          to_port: 8080
+          protocol: tcp
+          cidr_blocks: ["10.0.0.0/16"] 
 ```
 
 
