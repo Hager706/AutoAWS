@@ -22,7 +22,7 @@
 ### What is AutoAWS?
 AutoAWS is an infrastructure-as-code automation tool that simplifies AWS resource provisioning through YAML configuration files. Instead of writing complex Terraform code for each project, users can define their infrastructure requirements in a simple YAML file and let the automation handle the rest.
 
-![Alt text](Architecture-image/3.png)
+![Alt text](Architecture-image/4.png)
 
 ### Key Features
 - ✅ **YAML-Based Configuration** - Define infrastructure in simple, readable YAML files
