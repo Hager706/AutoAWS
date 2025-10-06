@@ -61,13 +61,6 @@ AutoAWS solves these problems by:
 4. **GitHub Actions** - CI/CD automation pipeline
 5. **AWS Cloud** - Target infrastructure platform
 
-### Workflow
-```
-Developer → YAML Config → Python Script → Terraform → AWS Resources
-                ↓
-         GitHub Actions
-```
-
 ---
 
 ## 3. Project Structure
