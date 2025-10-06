@@ -1,35 +1,17 @@
 # AutoAWS - Automated AWS Infrastructure Deployment
-## Table of Contents
-1. [Project Overview](#project-overview)
-2. [Architecture Overview](#architecture-overview)
-3. [Prerequisites](#prerequisites)
-4. [Project Structure](#project-structure)
-5. [Module Documentation](#module-documentation)
-   - [VPC Module](#vpc-module)
-   - [Security Groups Module](#security-groups-module)
-   - [S3 Module](#s3-module)
-   - [RDS Module](#rds-module)
-6. [Configuration Guide](#configuration-guide)
-7. [Deployment Process](#deployment-process)
-8. [GitHub Actions CI/CD](#github-actions-cicd)
-9. [Testing and Validation](#testing-and-validation)
 
+AutoAWS is an infrastructure-as-code automation that simplifies AWS resource provisioning through YAML configuration files. Instead of writing complex Terraform code for each project, users can define their infrastructure requirements in a simple YAML file and let the automation handle the rest.
 
----
-
-## 1. Project Overview
-
-### What is AutoAWS?
-AutoAWS is an infrastructure-as-code automation tool that simplifies AWS resource provisioning through YAML configuration files. Instead of writing complex Terraform code for each project, users can define their infrastructure requirements in a simple YAML file and let the automation handle the rest.
+## 1. System Architecture Diagram
 
 ![Alt text](Architecture-image/5.png)
 
-### Key Features
-- ✅ **YAML-Based Configuration** - Define infrastructure in simple, readable YAML files
-- ✅ **Modular Architecture** - Reusable Terraform modules for different AWS services
-- ✅ **Automated Deployment** - Python script handles Terraform execution
-- ✅ **CI/CD Integration** - GitHub Actions for automatic deployments
-
+### Components
+1. **YAML Configuration Files** - User-defined infrastructure specifications
+2. **Python Deployment Script** - Orchestrates the deployment process
+3. **Terraform Modules** - Reusable infrastructure components
+4. **GitHub Actions** - CI/CD automation pipeline
+5. **AWS Cloud** - Target infrastructure platform
 
 ### Problem Statement
 Traditional infrastructure deployment requires:
@@ -49,61 +31,38 @@ AutoAWS solves these problems by:
 
 ---
 
-## 2. Architecture Overview
-
-### System Architecture Diagram
-**[INSERT SCREENSHOT: draw.io diagram showing complete system flow]**
-
-### Components
-1. **YAML Configuration Files** - User-defined infrastructure specifications
-2. **Python Deployment Script** - Orchestrates the deployment process
-3. **Terraform Modules** - Reusable infrastructure components
-4. **GitHub Actions** - CI/CD automation pipeline
-5. **AWS Cloud** - Target infrastructure platform
-
-### Workflow
-```
-Developer → YAML Config → Python Script → Terraform → AWS Resources
-                ↓
-         GitHub Actions
-```
-
----
-
-## 3. Project Structure
+## 2. Project Structure
 
 ### Directory Layout
 ```
 AutoAWS/
-├── configs/                     # YAML configuration files
-│   └── example-project.yaml     # Simple test configuration
-├── modules/                     # Terraform modules
-│   ├── VPC/                     # VPC with subnets, NAT, IGW
-│   ├── Security_groups/         # Security group management
-│   ├── S3/                      # S3 bucket creation
-│   ├── RDS/                     # RDS database instances
-│   ├── CloudWatch/              # CloudWatch monitoring
-│   ├── ECR/                     # Elastic Container Registry
-│   ├── ECS/                     # Elastic Container Service
-│   ├── alb/                     # Application Load Balancer
-│   ├── autoscaling/             # Auto Scaling groups
-│   └── IAM/                     # IAM roles and policies
-├── scripts/                     # Automation scripts
-│   └── deploy.py                # Main deployment script
-│   └── destroy.py               # destroy script
-│   └── infra.py                 # Python script to deploy/destroy
-├── .github/workflows/           # GitHub Actions workflows
+├── configs/                   
+│   └── example-project.yaml    
+├── modules/                    
+│   ├── VPC/                   
+│   ├── Security_groups/      
+│   ├── S3/                     
+│   ├── RDS/                     
+│   ├── CloudWatch/             
+│   ├── ECS/                    
+│   ├── alb/                     
+│   ├── autoscaling/            
+│   └── IAM/                     
+├── scripts/                   
+│   └── deploy.py               
+│   └── destroy.py              
+│   └── infra.py                 
+├── .github/workflows/           
 │   └── deploy-destroy.yml
 ├── backend.tf
-├── main.tf                      # Root Terraform configuration
-├── variables.tf                 # Root variable definitions
-├── outputs.tf                   # Root output definitions
-├── providers.tf                 # Provider configurations
-├── .gitignore                   # Git ignore rules
-└── README.md                    # Project documentation
+├── main.tf                      
+├── variables.tf                
+├── outputs.tf                 
+├── providers.tf                 
+├── .gitignore                   
+└── README.md                    
 
 ```
-
 ### File Purposes
 - **configs/** - Store all infrastructure definitions as YAML
 - **modules/** - Reusable Terraform components for AWS services
@@ -112,142 +71,7 @@ AutoAWS/
 - **Root TF files** - Terraform entry points that call modules
 
 ---
-
-## 5. Module Documentation
-
-### VPC Module
-
-#### Purpose
-Creates a complete Virtual Private Cloud infrastructure including:
-- VPC with custom CIDR block
-- Public and private subnets across multiple availability zones
-- Internet Gateway for public subnet internet access
-- NAT Gateways for private subnet outbound connectivity
-- Route tables with proper routing configuration
-- DNS resolution and hostname support
-
-
-#### Configuration Example
-Simple YAML configuration that creates VPC with subnets:
-```yaml
-enable_vpc: true
-vpc_cidr: "10.0.0.0/16"
-enable_nat_gateway: true
-single_nat_gateway: false
-public_subnets:
-  - name: "public-web-1"
-    cidr_block: "10.0.1.0/24"
-    availability_zone: "us-east-1a"
-private_subnets:
-  - name: "private-app-1"
-    cidr_block: "10.0.10.0/24"
-    availability_zone: "us-east-1a"
-```
-
-
-#### Network Architecture
-
-
----
-
-### Security Groups Module
-
-#### Purpose
-Manages AWS Security Groups which act as virtual firewalls controlling inbound and outbound traffic to AWS resources. This module provides a flexible way to define security rules through YAML configuration.
-
-#### Key Features
-- **Flexible Rule Definition** - Define ingress and egress rules via YAML
-- **CIDR-Based Rules** - Allow traffic from specific IP ranges
-- **Security Group References** - Allow traffic between security groups
-- **Default Egress** - Automatically allows all outbound traffic if no egress rules specified
-- **Multiple Security Groups** - Create and manage multiple security groups per configuration
-- **Rule Descriptions** - Add descriptions for audit and documentation
-
-#### Configuration Example
-Define web, application, and database tier security groups:
-```yaml
-enable_security_groups: true
-security_groups:
-  - name: "web-sg"
-    description: "Security group for web servers"
-    ingress_rules:
-      - description: "HTTPS from internet"
-        from_port: 443
-        to_port: 443
-        protocol: "tcp"
-        cidr_blocks: ["0.0.0.0/0"]
-  
-  - name: "app-sg"
-    description: "Security group for application servers"
-    ingress_rules:
-      - description: "HTTP from web tier"
-        from_port: 8080
-        to_port: 8080
-        protocol: "tcp"
-        security_groups: ["web-sg"]
-```
-
-
-
-#### Security Architecture
-
-
-
----
-
-### S3 Module
-
-#### Purpose
-Creates and manages AWS S3 buckets with comprehensive configuration options including versioning, encryption, lifecycle policies, and CORS settings. S3 is AWS's object storage service used for storing files, backups, static websites, and application data.
-
-#### Configuration Example
-Create buckets for different purposes:
-```yaml
-enable_s3: true
-s3_buckets:
-  - name: "app-assets"
-    versioning_enabled: true
-    encryption_enabled: true
-    public_read_access: false
-    lifecycle_rules_enabled: true
-    lifecycle_rules:
-      - id: "archive-old-data"
-        enabled: true
-        transition_to_ia_days: 30
-        transition_to_glacier_days: 90
-        expiration_days: 365
-```
-
-#### S3 Architecture
-
----
-
-### RDS Module
-
-#### Purpose
-Creates and manages AWS RDS (Relational Database Service) instances with support for multiple database engines, high availability, automated backups, and monitoring. RDS provides managed database services eliminating the need for manual database administration.
-
-#### Configuration Example
-Create a MySQL database with high availability:
-```yaml
-enable_rds: true
-rds_instances:
-  - name: "app-db"
-    engine: "mysql"
-    engine_version: "8.0"
-    instance_class: "db.t3.micro"
-    allocated_storage: 20
-    max_allocated_storage: 100
-    username: "admin"
-    db_name: "application"
-    multi_az: true
-    backup_retention_period: 7
-    monitoring_enabled: true
-    deletion_protection: true
-```
----
-
-## 6. Configuration Guide
+## 3. Configuration Guide
 
 ### YAML Configuration File Structure
 
@@ -281,7 +105,7 @@ enable_cloudwatch: false
 ```
 ---
 
-## 7. Deployment Process
+## 4. Deployment Process
 
 ### Manual Deployment (Using Python Script)
 
@@ -297,8 +121,6 @@ enable_cloudwatch: false
 # Configure AWS credentials
 aws configure
 
-# Verify credentials
-aws sts get-caller-identity
 ```
 
 #### Step 3: Run Deployment Script
@@ -325,9 +147,198 @@ The script will:
 - Type "yes" to proceed
 - Wait for deployment to complete
 
+
+---
+## 5. Module Documentation
+
+### VPC Module
+**Purpose:**  
+Creates a custom Virtual Private Cloud (VPC) with public and private subnets, route tables, and gateways.  
+It provides the base networking layer for all AWS resources.  
+
+**Features:**  
+- Public & private subnets  
+- Internet Gateway  
+- NAT Gateway  
+- Route tables and associations 
+
+
+#### Configuration Example
+Simple YAML configuration that creates VPC with subnets:
+```yaml
+enable_vpc: true
+vpc_cidr: "10.0.0.0/16"
+enable_nat_gateway: true
+single_nat_gateway: false
+public_subnets:
+  - name: "public-web-1"
+    cidr_block: "10.0.1.0/24"
+    availability_zone: "us-east-1a"
+private_subnets:
+  - name: "private-app-1"
+    cidr_block: "10.0.10.0/24"
+    availability_zone: "us-east-1a"
 ```
 
-#### Common Issues and Solutions
+---
+
+### Security Groups Module
+**Purpose:**  
+Manages inbound and outbound traffic rules for AWS resources.  
+You can easily define all rules from YAML without writing Terraform manually.  
+
+**Features:**  
+- Ingress & egress rules  
+- CIDR or SG-based rules  
+- Tiered application design (web, app, DB) 
+
+#### Configuration Example
+Define web, application, and database tier security groups:
+```yaml
+enable_security_groups: true
+security_groups:
+  - name: "web-sg"
+    description: "Security group for web servers"
+    ingress_rules:
+      - description: "HTTPS from internet"
+        from_port: 443
+        to_port: 443
+        protocol: "tcp"
+        cidr_blocks: ["0.0.0.0/0"]
+  
+  - name: "app-sg"
+    description: "Security group for application servers"
+    ingress_rules:
+      - description: "HTTP from web tier"
+        from_port: 8080
+        to_port: 8080
+        protocol: "tcp"
+        security_groups: ["web-sg"]
+```
+---
+
+### S3 Module
+**Purpose:**  
+Creates secure S3 buckets for data storage, backups, or static website hosting.  
+
+**Features:**  
+- Versioning & encryption  
+- Lifecycle rules  
+- Access control policies  
+
+#### Configuration Example
+Create buckets for different purposes:
+```yaml
+enable_s3: true
+s3_buckets:
+  - name: "app-assets"
+    versioning_enabled: true
+    encryption_enabled: true
+    public_read_access: false
+    lifecycle_rules_enabled: true
+    lifecycle_rules:
+      - id: "archive-old-data"
+        enabled: true
+        transition_to_ia_days: 30
+        transition_to_glacier_days: 90
+        expiration_days: 365
+```
+---
+
+### RDS Module
+**Purpose:**  
+Creates managed relational databases (MySQL, PostgreSQL, etc.) with automated backups and monitoring.  
+
+**Features:**  
+- Multi-AZ support  
+- Backup retention  
+- Encryption and monitoring  
+
+#### Configuration Example
+Create a MySQL database with high availability:
+```yaml
+enable_rds: true
+rds_instances:
+  - name: "app-db"
+    engine: "mysql"
+    engine_version: "8.0"
+    instance_class: "db.t3.micro"
+    allocated_storage: 20
+    max_allocated_storage: 100
+    username: "admin"
+    db_name: "application"
+    multi_az: true
+    backup_retention_period: 7
+    monitoring_enabled: true
+    deletion_protection: true
+```
+---
+### ALB Module
+**Purpose:**  
+Creates an Application Load Balancer to distribute traffic across multiple EC2 instances or containers.  
+
+**Features:**  
+- HTTP/HTTPS listeners  
+- Target groups and health checks  
+- Integration with Auto Scaling and ECS  
+
+---
+### IAM Module  
+**Purpose:**  
+Creates AWS IAM roles, users, and policies to manage access control securely.  
+
+**Features:**  
+- IAM roles with custom policies  
+- Attach roles to EC2 or services  
+- Principle of least privilege  
+
+---
+
+### Route53 Module  
+**Purpose:**  
+Manages DNS records for your domains, allowing you to route traffic easily to ALB, EC2, or CloudFront.  
+
+**Features:**  
+- Public/Private hosted zones  
+- A/AAAA/CNAME records  
+- ALB and EC2 integration  
+
+---
+### Secrets Manager Module  
+**Purpose:**  
+Stores and manages secrets (like passwords or API keys) securely and retrieves them dynamically.  
+
+**Features:**  
+- Encrypted secret storage  
+- Automatic rotation  
+- Secure access from applications  
+
+---
+
+### CloudWatch Module  
+**Purpose:**  
+Provides monitoring and logging for AWS resources.  
+Helps track performance metrics and send alerts when thresholds are exceeded.  
+
+**Features:**  
+- CloudWatch alarms  
+- Metrics and dashboards  
+- Log groups for EC2, Lambda, or RDS  
+
+---
+
+### Auto Scaling Module  
+**Purpose:**  
+Automatically adjusts the number of EC2 instances based on workload and performance metrics.  
+
+**Features:**  
+- Scale in/out policies  
+- Integration with ALB  
+- CloudWatch metric triggers  
+
+---
+
+## 6. Common Issues and Solutions
 
 **Issue 1: AWS Credentials Not Found**
 ```
@@ -350,7 +361,7 @@ Solution: Choose different CIDR block in YAML configuration
 
 ---
 
-## 8. GitHub Actions CI/CD
+## 7. GitHub Actions CI/CD
 
 ### Overview
 GitHub Actions provides automated deployment triggered by code changes, eliminating manual deployment steps and ensuring consistency across environments.
