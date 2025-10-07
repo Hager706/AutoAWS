@@ -33,7 +33,6 @@ def init_backend(config):
         "-reconfigure"  # Allow switching between backends
     ]
     
-    print("\n🔄 Initializing Terraform...")
     result = subprocess.run(
         ['terraform', 'init'] + backend_config,
         capture_output=True,
