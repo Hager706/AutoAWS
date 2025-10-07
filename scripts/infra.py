@@ -118,11 +118,11 @@ def main():
             sys.exit(1)
 
 
-    # Ask for confirmation 
-    response = input(f"Do you want to {action} these changes? (yes/no):")
-    if response.lower() != 'yes':
-        print("Operation cancelled")
-        sys.exit(0)
+    # # Ask for confirmation 
+    # response = input(f"Do you want to {action} these changes? (yes/no):")
+    # if response.lower() != 'yes':
+    #     print("Operation cancelled")
+    #     sys.exit(0)
     
     # Apply or Destroy
     if action == 'deploy':
