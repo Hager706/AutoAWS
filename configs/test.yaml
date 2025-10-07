@@ -1,5 +1,5 @@
-project_name: "autoaws"
-environment: "dev"
+project_name: "manualaws"
+environment: "test"
 aws_region: "us-east-1"
 
 backend:
@@ -10,38 +10,31 @@ backend:
 common_tags:
   Owner: "DevOps Team"
   Project: "AutoAWS"
-  Environment: "dev"
+  Environment: "test"
   ManagedBy: "terraform"
 
 enable_vpc: true
-# enable_security_groups: true
-# enable_ec2: true
-# enable_rds: false
-# enable_s3: true
-# enable_cloudwatch: true
-# enable_elb: false
-# enable_ecs: false
-# enable_ecr: false
 
-vpc_cidr: "10.0.0.0/16"
+
+vpc_cidr: "10.1.0.0/16"
 enable_dns_hostnames: true
 enable_dns_support: true
 
 public_subnets:
   - name: "public-web-1"
-    cidr_block: "10.0.1.0/24"
+    cidr_block: "10.1.1.0/24"
     availability_zone: "us-east-1a"
   - name: "public-web-2"
-    cidr_block: "10.0.2.0/24"
+    cidr_block: "10.1.2.0/24"
     availability_zone: "us-east-1b"
 
 private_subnets:
   - name: "private-app-1"
-    cidr_block: "10.0.10.0/24"
+    cidr_block: "10.1.10.0/24"
     availability_zone: "us-east-1a"
     
   - name: "private-db-1"
-    cidr_block: "10.0.20.0/24"
+    cidr_block: "10.1.20.0/24"
     availability_zone: "us-east-1b"
 
 services:
