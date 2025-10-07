@@ -48,7 +48,7 @@ jobs:
         run: |
           if [[ "${{ github.event_name }}" == "push" ]]; then
             echo "Auto deploy on push"
-            python3 scripts/infra.py ${{github.event.inputs.config_file}} deploy
+            python3 scripts/infra.py ${{ github.event.inputs.config_file }} deploy
           else
             if [[ "${{ github.event.inputs.action }}" == "destroy" ]]; then
               if [[ "${{ github.event.inputs.confirm_destroy }}" != "Yes" ]]; then
