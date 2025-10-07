@@ -44,8 +44,9 @@ AutoAWS/
 │   ├── S3/                     
 │   ├── RDS/                     
 │   ├── CloudWatch/             
-│   ├── ECS/                    
-│   ├── alb/                     
+│   ├── secrerts/                    
+│   ├── route53/
+│   ├── alb/                                          
 │   ├── autoscaling/            
 │   └── IAM/                     
 ├── scripts/                   
@@ -164,7 +165,7 @@ It provides the base networking layer for all AWS resources.
 
 
 #### Configuration Example
-Simple YAML configuration that creates VPC with subnets:
+Simple example YAML configuration that creates VPC with subnets:
 ```yaml
 enable_vpc: true
 vpc_cidr: "10.0.0.0/16"
@@ -195,25 +196,25 @@ You can easily define all rules from YAML without writing Terraform manually.
 #### Configuration Example
 Define web, application, and database tier security groups:
 ```yaml
-enable_security_groups: true
-security_groups:
-  - name: "web-sg"
-    description: "Security group for web servers"
-    ingress_rules:
-      - description: "HTTPS from internet"
-        from_port: 443
-        to_port: 443
-        protocol: "tcp"
-        cidr_blocks: ["0.0.0.0/0"]
-  
-  - name: "app-sg"
-    description: "Security group for application servers"
-    ingress_rules:
-      - description: "HTTP from web tier"
-        from_port: 8080
-        to_port: 8080
-        protocol: "tcp"
-        security_groups: ["web-sg"]
+services:
+  security_groups:
+    - name: alb
+      description: "ALB security group"
+      ingress_rules:
+        - from_port: 80
+          to_port: 80
+          protocol: tcp
+          cidr_blocks: ["0.0.0.0/0"]
+          description: "Allow HTTP from anywhere"
+      egress_rules: []
+      
+    - name: app
+      description: "App server SG"
+      ingress_rules:
+        - from_port: 8080
+          to_port: 8080
+          protocol: tcp
+          cidr_blocks: ["10.0.0.0/16"] 
 ```
 ---
 
@@ -337,184 +338,376 @@ Automatically adjusts the number of EC2 instances based on workload and performa
 - CloudWatch metric triggers  
 
 ---
+### Root Module Integration
 
-## 6. Common Issues and Solutions
+- Conditional module execution with count and try()
 
-**Issue 1: AWS Credentials Not Found**
-```
-Error: No valid credential sources found
-```
-Solution: Run `aws configure` and enter credentials
+- Full YAML-to-terraform.tfvars mapping
 
-**Issue 2: Insufficient Permissions**
-```
-Error: AccessDenied: User is not authorized
-```
-Solution: Ensure IAM user has required permissions (EC2, VPC, RDS, S3)
+- Correct module.vpc[0].vpc_id indexing fix
 
-**Issue 3: CIDR Overlap**
-```
-Error: The CIDR 10.0.0.0/16 conflicts with existing CIDR
-```
-Solution: Choose different CIDR block in YAML configuration
+- Added dependency chaining (ALB → ASG → RDS → SG)
+---
 
+## 6. Python Automation Scripts
+
+We created 3 scripts in evolution stages:
+
+### 1. [`deploy.py`](scripts/deploy.py)
+
+**Goal:** Automate basic Terraform deployment
+**Features:**
+
+- Read YAML config
+
+- Generate terraform.tfvars
+
+- Run Terraform init/plan/apply
+
+
+### 1. [`destroy.py`](scripts/destroy.py)
+
+**Goal:** Add cleanup capability
+**Features:**
+
+- Same logic as deploy, but calls terraform destroy
+
+- Includes confirmation prompt
+
+- Independent run support
+
+
+
+
+### 1. [`infra.py`](scripts/infra.py)
+
+
+**Goal**: Replace both deploy/destroy with a single intelligent script.
+
+```bash
+python3 scripts/infra.py config/example-project.yaml deploy
+python3 scripts/infra.py config/example-project.yaml destroy
+```
+**Features:**
+
+- Accepts two arguments: config_file and action
+
+- Generates terraform.tfvars dynamically
+
+- Runs Terraform init, plan, and apply/destroy
+
+- Detects invalid configs or keys
+
+- Auto-handles non-interactive mode for CI/CD
+
+- Built-in UTF-8 fix for Terraform JSON compatibility
+
+- Adds safe services parsing for nested structures
 
 ---
 
-## 7. GitHub Actions CI/CD
-
-### Overview
-GitHub Actions provides automated deployment triggered by code changes, eliminating manual deployment steps and ensuring consistency across environments.
+## 7. GitHub Actions CI/CD Workflow
 
 
-### Workflow Architecture
+### Workflow Overview
 
-#### Trigger Events
-1. **Push to main branch** - Automatic deploy to production
-2. **Push to develop branch** - Plan only, no apply
-3. **Pull Request** - Validate and plan, comment on PR
-4. **Manual Trigger** - workflow_dispatch for on-demand deployment
+This workflow automates infrastructure provisioning and destruction using Terraform + Python scripts.
 
-#### Job Flow
-```
-Validate → Plan → Apply → Notify
-   ↓         ↓       ↓       ↓
- Pass?    Save    Deploy  Success?
-          Plan   Resources
-```
+It runs when:
 
-### Setup Process
+- A YAML file under the config/ directory is pushed
 
-#### Step 1: Add AWS Credentials to GitHub Secrets
-**[INSERT SCREENSHOT: GitHub Settings → Secrets page]**
+- Or manually through the “Run workflow” button in GitHub
 
-1. Navigate to repository Settings
-2. Go to Secrets and variables → Actions
-3. Click "New repository secret"
-4. Add:
-   - Name: `AWS_ACCESS_KEY_ID`
-   - Value: Your AWS access key
-5. Repeat for `AWS_SECRET_ACCESS_KEY`
-
-**[INSERT SCREENSHOT: Adding secret in GitHub]**
-
-#### Step 2: Create Workflow File
-**[INSERT SCREENSHOT: Workflow file in VS Code]**
-
-File location: `.github/workflows/deploy-infrastructure.yml`
-
-The workflow file defines:
-- When to run (triggers)
-- What jobs to execute
-- Environment variables
-- Required secrets
-
-#### Step 3: Enable GitHub Actions
-**[INSERT SCREENSHOT: Actions tab in GitHub]**
-
-1. Go to Actions tab in repository
-2. Locate "Deploy AWS Infrastructure" workflow
-3. Workflow is automatically enabled
-
-#### Step 4: Configure Environments (Optional)
-**[INSERT SCREENSHOT: GitHub Environments settings]**
-
-1. Go to Settings → Environments
-2. Create "production" environment
-3. Add protection rules:
-   - Required reviewers
-   - Wait timer
-   - Deployment branches
-
-### Using GitHub Actions
-
-#### Automatic Deployment (Push to main)
-**[INSERT SCREENSHOT: Git push command]**
-**[INSERT SCREENSHOT: GitHub Actions automatically triggered]**
+### Workflow File Path
 
 ```bash
-# Make changes to config
-vim configs/prod-vpc.yaml
-
-# Commit and push
-git add configs/prod-vpc.yaml
-git commit -m "Update production VPC configuration"
-git push origin main
-
-# GitHub Actions automatically starts
+.github/workflows/deploy-destroy.yml
 ```
 
-#### Manual Deployment
-**[INSERT SCREENSHOT: Manual workflow dispatch UI]**
+### Workflow Breakdown
 
-1. Go to Actions tab
-2. Select "Deploy AWS Infrastructure"
-3. Click "Run workflow"
-4. Choose:
-   - Branch (main/develop)
-   - Config file path
-   - Action (plan/apply/destroy)
-5. Click "Run workflow"
+```bash
+name: Infra CI/CD
+```
+This defines the name of your workflow as it appears in the GitHub Actions UI.
 
-**[INSERT SCREENSHOT: Workflow running]**
+---- 
 
-### Workflow Jobs Explained
+### Trigger Section
 
-#### Job 1: Validate
-**[INSERT SCREENSHOT: Validate job logs]**
+```yaml
+on:
+  push:
+    paths:
+       - 'configs/*.yaml'
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "Choose action: deploy or destroy"
+        required: true
+        default: "deploy"
+        type: choice
+        options:
+          - deploy
+          - destroy
+      config_file:
+        description: "YAML config file"
+        required: true
+        default: "configs/example-project.yaml"
+      confirm_destroy:
+        description: "Type Yes to confirm destroy"
+        required: false
+        default: "No"
+```
 
-Purpose: Quick validation before expensive operations
-- Checks YAML syntax
-- Verifies Terraform files exist
-- Runs in ~30 seconds
-- Fails fast on basic errors
+#### What This Does:
 
-#### Job 2: Plan
+**1. push event**
 
-#### Job 3: Apply
-**[INSERT SCREENSHOT: Apply job success]**
+- Whenever you push a YAML file (like config/example-project.yaml), the workflow automatically runs.
 
-Purpose: Deploy infrastructure
-- Only runs on main branch
-- Requires environment approval
-- Downloads plan artifact
-- Applies changes
-- Saves outputs as artifact
+- This is how you get auto-deployment from GitHub → AWS.
 
-#### Job 4: Destroy
-**[INSERT SCREENSHOT: Destroy job confirmation]**
+**2. workflow_dispatch (manual trigger)**
 
-Purpose: Remove infrastructure
-- Only runs on manual trigger with "destroy" action
-- Requires "production-destroy" environment approval
-- Destroys all resources
-- Use with extreme caution
+- Lets you run the pipeline manually from the GitHub Actions UI.
 
-### Viewing Results
+- It includes 3 parameters:
 
-#### Workflow Run Details
-**[INSERT SCREENSHOT: Workflow run summary]**
+  - action → either deploy or destroy
 
-Click on workflow run to see:
-- Job status (success/failure)
-- Execution time
-- Logs for each step
-- Artifacts generated
+  - config_file → which YAML file to use
 
-#### Artifacts
-**[INSERT SCREENSHOT: Artifacts section]**
+  - confirm_destroy → safety confirmation before destruction
 
-Generated artifacts:
-- **terraform-plan**: Execution plan (5 days retention)
-- **terraform-outputs**: Resource details (30 days retention)
+--- 
+### Job Definition
 
-Download artifacts to review offline
+```bash
+jobs:
+  infra:
+    runs-on: ubuntu-latest
+```
+Defines a single job named infra that runs on an Ubuntu virtual machine.
 
-#### Pull Request Comments
-**[INSERT SCREENSHOT: Terraform plan in PR comments]**
+---
 
-For PR triggers:
-- Plan output commented on PR
-- Team can review before merge
-- Approve/reject based on plan
+### Steps Explanation
+
+Let’s go line-by-line through the workflow steps:
+
+---
+
+#### 1. Checkout Code
+
+```bash
+- name: Checkout code
+  uses: actions/checkout@v3
+```
+This step pulls your repository code (Terraform, scripts, and configs) into the runner so it can execute the scripts locally.
+
+---
+
+#### 2. Set Up Python
+
+```bash
+- name: Set up Python
+  uses: actions/setup-python@v4
+  with:
+    python-version: '3.10'
+```
+This installs Python 3.10 inside the runner.
+It’s required for running your infra.py script, which automates Terraform.
+
+---
+
+#### 3. Install Dependencies
+
+```bash
+- name: Install dependencies
+  run: pip install pyyaml boto3 requests
+```
+Installs the necessary Python libraries:
+
+- PyYAML → to parse the YAML configuration
+
+- Boto3 → for AWS SDK integration (optional)
+
+- Requests → for Slack and email notifications
+
+
+#### 4. Set Up Terraform
+
+```bash
+- name: Set up Terraform
+  uses: hashicorp/setup-terraform@v2
+  with:
+    terraform_version: 1.5.6
+```
+
+This installs Terraform version 1.5.6 on the runner.
+It ensures that your infrastructure is deployed using the same Terraform version everywhere.
+
+---
+
+#### 5. Run Infra Script
+
+```bash
+- name: Run Infra Script
+  run: |
+    if [[ "${{ github.event_name }}" == "push" ]]; then
+      echo "Auto deploy on push"
+      python3 scripts/infra.py ${{ github.event.inputs.config_file }} deploy 
+    else
+      if [[ "${{ github.event.inputs.action }}" == "destroy" ]]; then
+        if [[ "${{ github.event.inputs.confirm_destroy }}" != "YES" ]]; then
+          echo "Destroy not confirmed. Exiting."
+          exit 1
+        fi
+      fi
+      python3 scripts/infra.py ${{ github.event.inputs.config_file }} ${{ github.event.inputs.action }}
+    fi
+  env:
+    AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+```
+---
+
+### Step Logic Breakdown
+
+| **Condition**                     | **Action**                  | **Explanation**                              |
+|----------------------------------|-----------------------------|----------------------------------------------|
+| If push event                    | Runs `infra.py ... deploy`  | Auto-deploys whenever a config file is pushed |
+| If manual trigger with destroy   | Checks `confirm_destroy == "YES"` | Prevents accidental resource deletion         |
+| If manual trigger with deploy    | Runs `infra.py ... deploy`  | Manually triggers infrastructure deployment   |
+
+---
+
+### Environment Variables
+
+These are set securely via **GitHub Secrets**:
+
+| **Secret Name**           | **Description**           |
+|----------------------------|---------------------------|
+| `AWS_ACCESS_KEY_ID`        | AWS IAM access key        |
+| `AWS_SECRET_ACCESS_KEY`    | AWS IAM secret            |
+| `AWS_DEFAULT_REGION`       | Default AWS region        |
+
+You configure them under:  
+**Repository → Settings → Secrets and Variables → Actions**
+
+---
+
+### Slack & Email Notifications
+After Terraform deployment or destruction, AutoAWS automatically notifies the team via Slack and Email.
+
+This ensures instant visibility into the result of each infrastructure change — whether it’s a success or a failure.
+
+
+#### Slack Success Notification
+```bash
+- name: Slack Success
+  if: success()
+  uses: slackapi/slack-github-action@v1.24.0
+  with:
+    payload: |
+      {
+        "text": ":white_check_mark: Infra *${{ github.event.inputs.action || 'deploy' }}* SUCCESS for config: *${{ github.event.inputs.config_file || 'configs/example.yaml' }}*"
+      }
+  env:
+    SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+```
+
+**Explanation:**
+
+- if: success() → triggers only if the previous Terraform steps were successful
+
+- payload → JSON payload containing the Slack message content
+
+- SLACK_WEBHOOK_URL → stored securely in GitHub Secrets
+
+- Automatically includes the:
+
+  - Action type (deploy or destroy)
+
+  - Config file name
+---
+#### Slack Failure Notification
+
+```bash
+- name: Slack Failure
+  if: failure()
+  uses: slackapi/slack-github-action@v1.24.0
+  with:
+    payload: |
+      {
+        "text": ":x: Infra *${{ github.event.inputs.action || 'deploy' }}* FAILED for config: *${{ github.event.inputs.config_file || 'configs/example.yaml' }}*"
+      }
+  env:
+    SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+```
+
+**Explanation:**
+
+- if: failure() → triggers only when Terraform or Python scripts fail
+
+- Sends an alert to the Slack channel with failure details
+---
+
+#### Setting Up Slack Webhook
+
+1. Go to your Slack Workspace → App Directory
+
+2. Search for Incoming Webhooks
+
+3. Create a new Webhook for your desired channel
+
+4. Copy the Webhook URL
+
+5. Add it in GitHub →
+Settings → Secrets and variables → Actions → New repository secret
+
+---
+
+### Email Notifications
+
+We also integrated email notifications using dawidd6/action-send-mail.
+
+This allows the pipeline to send emails on both success and failure via Gmail SMTP (or any mail server).
+
+### Email Success or Failure Notification
+
+```bash
+- name: Email Success
+  if: success()
+  uses: dawidd6/action-send-mail@v3
+  with:
+    server_address: smtp.gmail.com
+    server_port: 465
+    username: ${{ secrets.EMAIL_USER }}
+    password: ${{ secrets.EMAIL_PASS }}
+    subject: "Infra ${{ github.event.inputs.action || 'deploy' }} SUCCESS"
+    to: "abdelrahmankhalid27@gmail.com"
+    from: "Terraform Bot <${{ secrets.EMAIL_USER }}>"
+    body: "Infra ${{ github.event.inputs.action || 'deploy' }} succeeded for config: ${{ github.event.inputs.config_file || 'configs/example.yaml' }}. Commit: ${{ github.sha }}"
+
+- name: Email Success
+  if: success()
+  uses: dawidd6/action-send-mail@v3
+  with:
+    server_address: smtp.gmail.com
+    server_port: 465
+    username: ${{ secrets.EMAIL_USER }}
+    password: ${{ secrets.EMAIL_PASS }}
+    subject: "Infra ${{ github.event.inputs.action || 'deploy' }} SUCCESS"
+    to: "abdelrahmankhalid27@gmail.com"
+    from: "Terraform Bot <${{ secrets.EMAIL_USER }}>"
+    body: "Infra ${{ github.event.inputs.action || 'deploy' }} succeeded for config: ${{ github.event.inputs.config_file || 'configs/example.yaml' }}. Commit: ${{ github.sha }}"
+```
+
+**Note:**
+For Gmail, enable App Passwords (not your main account password).
+Go to: Google Account → Security → App passwords
 

@@ -48,7 +48,7 @@ jobs:
         run: |
           if [[ "${{ github.event_name }}" == "push" ]]; then
             echo "Auto deploy on push"
-            python3 scripts/infra.py ${{github.event.inputs.config_file}} ${{ github.event.inputs.action }} 
+            python3 scripts/infra.py ${{github.event.inputs.config_file}} deploy
           else
             if [[ "${{ github.event.inputs.action }}" == "destroy" ]]; then
               if [[ "${{ github.event.inputs.confirm_destroy }}" != "Yes" ]]; then
@@ -115,11 +115,6 @@ jobs:
           to: "abdelrahmankhalid27@gmail.com"
           from: "Terraform Bot <${{ secrets.EMAIL_USER }}>"
           body: "Infra ${{ github.event.inputs.action || 'deploy' }} failed for config: ${{ github.event.inputs.config_file || 'configs/example.yaml' }}. Commit: ${{ github.sha }}"
-
-
-
-
-
 
 
 
