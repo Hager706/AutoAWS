@@ -98,7 +98,7 @@ jobs:
           username: ${{ secrets.EMAIL_USER }}
           password: ${{ secrets.EMAIL_PASS }}
           subject: "Infra ${{ github.event.inputs.action || 'deploy' }} SUCCESS"
-          to: "george.eissa@konecta.com"
+          to: "abdelrahmankhalid27@gmail.com"
           from: "Terraform Bot <${{ secrets.EMAIL_USER }}>"
           body: "Infra ${{ github.event.inputs.action || 'deploy' }} succeeded for config: ${{ github.event.inputs.config_file || 'configs/example.yaml' }}. Commit: ${{ github.sha }}"
 
